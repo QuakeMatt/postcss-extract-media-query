@@ -16,6 +16,7 @@ module.exports = postcss.plugin('postcss-extract-media-query', opts => {
             name: '[name]-[query].[ext]'
         },
         queries: {},
+        nameResolver: null,
         extractAll: true,
         stats: true,
         entry: null
@@ -56,6 +57,10 @@ module.exports = postcss.plugin('postcss-extract-media-query', opts => {
         return { css, query };
     }
 
+    const getQueryName = opts.nameResolver || function (query) {
+        return opts.queries[query] || (opts.extractAll && _.kebabCase(query));
+    };
+
     return (root, result) => {
 
         let from = 'undefined.css';
@@ -75,7 +80,7 @@ module.exports = postcss.plugin('postcss-extract-media-query', opts => {
             root.walkAtRules('media', atRule => {
     
                 const query = atRule.params;
-                const queryname = opts.queries[query] || (opts.extractAll && _.kebabCase(query));
+                const queryname = getQueryName(query);
     
                 if (queryname) {
                     const css = postcss.root().append(atRule).toString();
